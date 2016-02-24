@@ -1,10 +1,16 @@
 # -*- coding: utf-8 -*-
 import SocketServer
-
+import json
+from time import*
 """
 Variables and functions that must be used by all the ClientHandler objects
 must be written here (e.g. a dictionary for connected clients)
 """
+
+connectedClients[]
+usernames[]
+log[]
+
 
 class ClientHandler(SocketServer.BaseRequestHandler):
     """
@@ -27,6 +33,33 @@ class ClientHandler(SocketServer.BaseRequestHandler):
             received_string = self.connection.recv(4096)
             
             # TODO: Add handling of received payload from client
+            data = json.loads(received_string);
+            if data:
+                now = gmtime()
+                timestamp = str(now[3]) + ':' + str(now[4]) + ':' + str(now[5])
+                if data["request"]=="login":
+                    username = data["content"]
+
+                    if username in usernames:                       
+                        userNameTaken = {"timestamp": timestamp, "sender": "server", "response": "Error", "content": "Username taken!"}
+                        payload_userNameTaken = json.dumps(userNameTaken)
+                        self.connection.send(payload_userNameTaken)
+
+                    else:
+                        usernames.append(username)
+                        connectedClients.append(self)
+                        #self.username??
+                        loginSucc = {"timestamp": timestamp, "sender": "server", "response": "Info", "content": "Login successful"}
+                        payload_loginSucc = json.dumps(loginSucc)
+                        self.connection.send(payload_loginSucc)
+                
+                elif data["request"] == "logout":
+                    #Continue here!!
+
+
+
+
+
 
 
 class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
