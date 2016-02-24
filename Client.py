@@ -35,8 +35,14 @@ class Client:
 
     def send_payload(self, data):
         try:
-            data = json
-        # TODO: Handle sending of a payload
+            data = json.dumps({'request': request, 'content': content})
+            self.connection.send(data)
+
+        except Exception as e:
+            print e
+            print "Could not send payload"
+
+            # TODO: Handle sending of a payload
         pass
         
     # More methods may be needed!
