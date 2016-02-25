@@ -8,7 +8,7 @@ must be written here (e.g. a dictionary for connected clients)
 """
 
 connectedClients[]
-usernames[]
+usernamesTaken[]
 log[]
 
 
@@ -27,6 +27,7 @@ class ClientHandler(SocketServer.BaseRequestHandler):
         self.ip = self.client_address[0]
         self.port = self.client_address[1]
         self.connection = self.request
+        self.username = ""
 
         # Loop that listens for messages from the client
         while True:
@@ -40,22 +41,60 @@ class ClientHandler(SocketServer.BaseRequestHandler):
                 if data["request"]=="login":
                     username = data["content"]
 
-                    if username in usernames:                       
-                        userNameTaken = {"timestamp": timestamp, "sender": "server", "response": "Error", "content": "Username taken!"}
+                    if username in usernamesTaken:                       
+                        userNameTaken = {"timestamp": timestamp, "sender": "server",
+                         "response": "Error", "content": "Username taken!"}
                         payload_userNameTaken = json.dumps(userNameTaken)
                         self.connection.send(payload_userNameTaken)
 
                     else:
-                        usernames.append(username)
-                        connectedClients.append(self)
-                        #self.username??
-                        loginSucc = {"timestamp": timestamp, "sender": "server", "response": "Info", "content": "Login successful"}
-                        payload_loginSucc = json.dumps(loginSucc)
-                        self.connection.send(payload_loginSucc)
+                        if(not isValidUsername(username)):
+                            loginFail = {"timestamp": timestamp, "sender": "server",
+                                "response": "Error", "content": "Login failed"}
+                            payload_loginFail = json.dumps(loginFail)
+                            self.connection.send(payload_loginFail)
+                        else:     
+                            usernamesTaken.append(username)
+                            connectedClients.append(self)
+                            self.username = username
+                            loginSucc = {"timestamp": timestamp, "sender": "server",
+                            "response": "Info", "content": "Login successful"}
+                            payload_loginSucc = json.dumps(loginSucc)
+                            self.connection.send(payload_loginSucc)
+                            #History object
+                            loginSucc = {"timestamp": timestamp, "sender": "server",
+                            "response": "Info", "content": "Login successful"}
+                            payload_loginSucc = json.dumps(loginSucc)
+                            self.connection.send(payload_loginSucc)
+
+                elif data["request"] == "help":
+                    if self.username in usernamesTaken:
+                        help = {"timestamp": timestamp, "sender": "server",
+                         "response": "Info", "content": "Useful commands: help, logout, names, msg"}
+                        payload_help = json.dumps(help)
+                        self.connection.send(payload_help)
+                    else:
+                        help = {"timestamp": timestamp, "sender": "server",
+                         "response": "Info", "content": "Useful commands: help, login"}
+                        payload_help = json.dumps(help)
+                        self.connection.send(payload_help)
+
                 
+
                 elif data["request"] == "logout":
                     #Continue here!!
-
+                    usernamesTaken.remove(username)
+                    connectedClients.remove(self)
+                    logoutSucc = {"timestamp": timestamp, "sender": "server",
+                         "response": "Info", "content": "Logout successful"}
+                    payload_logoutSucc = json.dumps(logoutSucc)
+                    self.connection.send(payload_logoutSucc)
+def isValidUsername(username):
+    testString = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"
+        for letter in username:
+            if letter not in testString:
+                return False
+        return True
 
 
 
