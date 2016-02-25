@@ -29,16 +29,8 @@ class Client:
 
         self.receiver.start()
 
-        message = ''
-        while True:
-            try:
-                message = raw_input()
-                self.send_payload(message)
+        self.start()
 
-            except KeyboardInterrupt: 
-
-               
-        
     def disconnect(self):
         # TODO: Handle disconnection
         self.connection.close()
@@ -48,6 +40,16 @@ class Client:
         # TODO: Handle incoming message
         
         pass
+
+    def start():
+        self.receiver.start()
+        print 'Waiting for your input: '.
+       
+        rawInput = raw_input()
+        request, content = rawInput.split()
+        payload = {'request': request.lower(), 'content': content}
+        self.send_payload(payload)
+
 
     def send_payload(self, data):
         try:
