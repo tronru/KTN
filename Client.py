@@ -19,18 +19,34 @@ class Client:
         
         # TODO: Finish init process with necessary code
         self.run()
+        self.host = host
+        self.server_port = server_port
+        self.receiver = MessageReceiver(self, self.connection)
 
     def run(self):
         # Initiate the connection to the server
         self.connection.connect((self.host, self.server_port))
+
+        self.receiver.start()
+
+        message = ''
+        while True:
+            try:
+                message = raw_input()
+                self.send_payload(message)
+
+            except KeyboardInterrupt: 
+
+               
         
     def disconnect(self):
         # TODO: Handle disconnection
         self.connection.close()
-        pass
-
+        print 'Connection ',connection, " closed"
+        
     def receive_message(self, message):
         # TODO: Handle incoming message
+        
         pass
 
     def send_payload(self, data):
@@ -43,7 +59,6 @@ class Client:
             print "Could not send payload"
 
             # TODO: Handle sending of a payload
-        pass
         
     # More methods may be needed!
 
