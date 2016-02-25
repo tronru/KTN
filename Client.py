@@ -43,10 +43,14 @@ class Client:
 
     def start():
         self.receiver.start()
-        print 'Waiting for your input: '.
-       
-        rawInput = raw_input()
-        request, content = rawInput.split()
+        print 'Waiting for your input'
+        try: 
+            rawInput = raw_input()
+            request, content = rawInput.split()
+        except: ValueError e
+            request = rawInput
+            content = ''
+
         payload = {'request': request.lower(), 'content': content}
         self.send_payload(payload)
 
