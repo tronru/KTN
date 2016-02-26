@@ -52,8 +52,7 @@ class Client:
     def send_payload(self, data):
 
         try:
-            data = json.dumps({'request': request, 'content': content})
-            self.connection.send(data)
+            self.connection.send(json.dumps(data))
 
         except Exception as e:
             print e
