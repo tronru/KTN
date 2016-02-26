@@ -29,15 +29,16 @@ class Client:
         while True:
             print 'Waiting for your input'
             rawInput = raw_input()
-            try: 
-                request, content = rawInput.split()
+            if rawInput:
+                try: 
+                    request, content = rawInput.split()
 
-            except ValueError:
-                request = rawInput
-                content = ''
+                except ValueError:
+                    request = rawInput
+                    content = ''
 
-            payload = {'request': request.lower(), 'content': content}
-            self.send_payload(payload)
+                payload = {'request': request.lower(), 'content': content}
+                self.send_payload(payload)
 
     def disconnect(self):
         # TODO: Handle disconnection
