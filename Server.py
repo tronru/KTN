@@ -20,6 +20,15 @@ class ClientHandler(SocketServer.BaseRequestHandler):
     logic for the server, you must write it outside this class
     """
 
+    def __init__(self):
+        self.possible_requests = {
+            'names': self.reply_names,
+            'help': self.reply_help,
+            'msg': self.reply_msg, 
+            'login': self.reply_login,
+            'logout': self.reply_logout
+            }
+
     def handle(self):
         """
         This method handles the connection between a client and the server.
@@ -34,102 +43,78 @@ class ClientHandler(SocketServer.BaseRequestHandler):
             received_string = self.connection.recv(4096)
             
             # TODO: Add handling of received payload from client
-            data = json.loads(received_string);
-            if data:
-                now = gmtime()
-                timestamp = str(now[3]) + ':' + str(now[4]) + ':' + str(now[5])
-                dataRequest = data["request"].lower()
+            if received_string:
+                self.reply(received_string)
                 
-                #Different actions when connected
-                if self in connectedClients:
+               
+ 
+    def reply(self, payload):
+            payload = json.loads(payload)
 
-                    if dataRequest=="login":
-                        invalidCommand = {"timestamp": timestamp, "sender": "server",
-                             "response": "error", "content": "Invalid command"}
-                        payload_invalidCommand = json.dumps(invalidCommand)
-                        self.connection.send(payload_invalidCommand)
-                        
+            if payload['request'] in self.possible_requests:
+                return self.possible_requests[payload['request']](payload)
+            else:
+                print 'ERROR in parse(): response <<', payload['request'], '>> from SERVER not supported.'
 
-                    elif dataRequest == "help":
-                        help = {"timestamp": timestamp, "sender": "server",
-                         "response": "info", "content": "Useful commands: help, logout, names, msg"}
-                        payload_help = json.dumps(help)
-                        self.connection.send(payload_help)
+    def reply_login(self, payload):
+        if self in connectedClients:
+            send("server", "error", "Invalid command.")
 
-                    elif dataRequest == "msg":
-                        log.append(received_string)
-                        broadcast(dataRequest["content"])
+        else:
+            username = payload["content"]
 
+            if username in usernamesTaken:
+                send("server", "error", "Username taken!")                       
 
-                    elif dataRequest == "names":
-                        names = {"timestamp": timestamp, "sender": "server",
-                         "response": "info", "content": usernamesTaken}
-                        payload_names = json.dumps(names)
-                        self.connection.send(payload_names)
+            else:
+                if(not isValidUsername(username)):
+                    send("server", "error", "Login failed. Username not valid.")
+                else:     
+                    usernamesTaken.append(username)
+                    connectedClients.append(self)
+                    self.username = username
+                    send("server", "info", "Login successful.")
+                    #Send history object
+                    send("server", "history", log)
 
+    def reply_logout(self, payload):
+        if self in connectedClients:
+            usernamesTaken.remove(username)
+            connectedClients.remove(self)
+            send("server", "info", "Logout successful.")
+        else:
+            send("server", "error", "Invalid command.")
 
-
-                    elif dataRequest == "logout":
-                        usernamesTaken.remove(username)
-                        connectedClients.remove(self)
-                        logoutSucc = {"timestamp": timestamp, "sender": "server",
-                            "response": "info", "content": "Logout successful"}
-                        payload_logoutSucc = json.dumps(logoutSucc)
-                        self.connection.send(payload_logoutSucc)
-
-                else:
-                    if dataRequest=="login":
-                        username = data["content"]
-
-                        if username in usernamesTaken:                       
-                            userNameTaken = {"timestamp": timestamp, "sender": "server",
-                             "response": "error", "content": "Username taken!"}
-                            payload_userNameTaken = json.dumps(userNameTaken)
-                            self.connection.send(payload_userNameTaken)
-
-                        else:
-                            if(not isValidUsername(username)):
-                                loginFail = {"timestamp": timestamp, "sender": "server",
-                                    "response": "error", "content": "Login failed. Username not valid"}
-                                payload_loginFail = json.dumps(loginFail)
-                                self.connection.send(payload_loginFail)
-                            else:     
-                                usernamesTaken.append(username)
-                                connectedClients.append(self)
-                                self.username = username
-                                loginSucc = {"timestamp": timestamp, "sender": "server",
-                                    "response": "info", "content": "Login successful"}
-                                payload_loginSucc = json.dumps(loginSucc)
-                                self.connection.send(payload_loginSucc)
-                                #History object
-                                payload_log = {"timestamp": timestamp, "sender": "server",
-                                    "response": "history", "content": log}
-                                self.connection.send(payload_log)
-
-                    elif dataRequest == "help":
-                        help = {"timestamp": timestamp, "sender": "server",
-                            "response": "info", "content": "Useful commands: help, login"}
-                        payload_help = json.dumps(help)
-                        self.connection.send(payload_help)
-
-                    elif dataRequest == "msg":
-                        invalidCommand = {"timestamp": timestamp, "sender": "server",
-                            "response": "error", "content": "Invalid command"}
-                        payload_invalidCommand = json.dumps(invalidCommand)
-                        self.connection.send(payload_invalidCommand)
+    def reply_names(self, payload):
+        if self in connectedClients:
+            send("server", "info", usernamesTaken)
+        else:
+            send("server", "error", "Invalid command.")
 
 
-                    elif dataRequest == "logout":
-                        invalidCommand = {"timestamp": timestamp, "sender": "server",
-                            "response": "error", "content": "Invalid command"}
-                        payload_invalidCommand = json.dumps(invalidCommand)
-                        self.connection.send(payload_invalidCommand)
-                    
-                    elif dataRequest == "names":
-                        invalidCommand = {"timestamp": timestamp, "sender": "server",
-                            "response": "error", "content": "Invalid command"}
-                        payload_invalidCommand = json.dumps(invalidCommand)
-                        self.connection.send(payload_invalidCommand)
+    def reply_help(self, payload):
+        if self in connectedClients:
+            send("server", "info", "Useful commands: help, logout, names, msg.")
+        else:
+            send("server", "info", "Useful commands: help, login.")
+            
+
+    def reply_msg(self, payload):
+        if self in connectedClients:
+            log.append(received_string)
+            broadcast(payload["content"])
+        else:
+            send("server", "error", "Invalid command.")
+
+
+    def send(sender, response, content):
+        now = gmtime()
+        timestamp = str(now[3]) + ':' + str(now[4]) + ':' + str(now[5])
+        command = {"timestamp": timestamp, "sender": sender,
+            "response": response, "content": content}
+        self.connection.send(json.dumps(command))
+
+
 
 def isValidUsername(username):
     testString = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"
@@ -147,10 +132,6 @@ def broadcast(msg):
     payload_message = json.dumps(message)
     for client in connectedClients:
         client.connection.send(payload_message)
-
-
-
-
 
 
 class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
