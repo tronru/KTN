@@ -47,8 +47,10 @@ class Client:
 
     def disconnect(self):
         # TODO: Handle disconnection
+        self.connection.shutdown(2)
         self.connection.close()
-        print 'Connection ',connection, " closed"
+        print 'Connection to SERVER closed.'
+        exit(0)
         
     def receive_message(self, message):
         # TODO: Handle incoming message

@@ -45,11 +45,11 @@ class ClientHandler(SocketServer.BaseRequestHandler):
 
         # Loop that listens for messages from the client
         while True:
-            received_string = self.connection.recv(4096)
+            self.received_string = self.connection.recv(4096)
 
             # TODO: Add handling of received payload from client
-            if received_string:
-                self.reply(received_string)
+            if self.received_string:
+                self.reply(self.received_string)
                 
                
  
@@ -86,6 +86,8 @@ class ClientHandler(SocketServer.BaseRequestHandler):
             usernamesTaken.remove(self.username)
             connectedClients.remove(self)
             self.send("server", "info", "Logout successful.")
+            #sleep(0.5)
+            #self.exit()
         else:
             self.send("server", "error", "Invalid command.")
 
@@ -105,7 +107,11 @@ class ClientHandler(SocketServer.BaseRequestHandler):
 
     def reply_msg(self, payload):
         if self in connectedClients:
-            log.append(self.received_string)
+            now = gmtime()
+            timestamp = str(now[3]) + ':' + str(now[4]) + ':' + str(now[5])
+            log_msg = {"timestamp": timestamp, "sender": self.username,
+            "response": 'message', "content": payload["content"]}
+            log.append(json.dumps(log_msg))
             broadcast(payload["content"], self.username)
         else:
             self.send("server", "error", "Invalid command.")
