@@ -27,4 +27,5 @@ class MessageReceiver(Thread):
 
         while True:
             package = self.connection.recv(4096)
-            parser.parse(package)
+            if package:
+                parser.parse(package)
