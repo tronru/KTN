@@ -13,7 +13,6 @@ class Client:
         """
         This method is run when creating a new Client object
         """
-
         # Set up the socket connection to the server
         self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         
@@ -26,9 +25,7 @@ class Client:
     def run(self):
         # Initiate the connection to the server
         self.connection.connect((self.host, self.server_port))
-
         self.receiver.start()
-
         self.start()
 
     def disconnect(self):
@@ -38,15 +35,17 @@ class Client:
         
     def receive_message(self, message):
         # TODO: Handle incoming message
-        
         pass
 
     def start():
+
         self.receiver.start()
+        
         print 'Waiting for your input'
         try: 
             rawInput = raw_input()
             request, content = rawInput.split()
+
         except: ValueError e
             request = rawInput
             content = ''
@@ -56,6 +55,7 @@ class Client:
 
 
     def send_payload(self, data):
+
         try:
             data = json.dumps({'request': request, 'content': content})
             self.connection.send(data)
