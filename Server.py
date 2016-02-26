@@ -12,6 +12,8 @@ usernamesTaken = []
 log = []
 
 
+
+
 class ClientHandler(SocketServer.BaseRequestHandler):
     """
     This is the ClientHandler class. Everytime a new client connects to the
@@ -20,23 +22,26 @@ class ClientHandler(SocketServer.BaseRequestHandler):
     logic for the server, you must write it outside this class
     """
 
-    #def __init__(self):
-     #   self.possible_requests = {
-      #      'names': self.reply_names,
-       #     'help': self.reply_help,
-        #    'msg': self.reply_msg, 
-         #   'login': self.reply_login,
-          #  'logout': self.reply_logout
-           # }
+    
 
     def handle(self):
         """
         This method handles the connection between a client and the server.
         """
+        self.possible_requests = {
+        'names': self.reply_names,
+        'help': self.reply_help,
+        'msg': self.reply_msg, 
+        'login': self.reply_login,
+        'logout': self.reply_logout
+            }
+
         self.ip = self.client_address[0]
         self.port = self.client_address[1]
         self.connection = self.request
         self.username = ""
+
+
 
         # Loop that listens for messages from the client
         while True:
@@ -51,63 +56,63 @@ class ClientHandler(SocketServer.BaseRequestHandler):
     def reply(self, payload):
             payload = json.loads(payload)
 
-            if payload['possible_requests'] in self.possible_requests:
+            if payload['request'] in self.possible_requests:
                 return self.possible_requests[payload['request']](payload)
             else:
                 print 'ERROR in replpy(): response <<', payload['request'], '>> from SERVER not supported.'
 
     def reply_login(self, payload):
         if self in connectedClients:
-            send("server", "error", "Invalid command.")
+            self.send("server", "error", "Invalid command.")
 
         else:
             username = payload["content"]
 
             if username in usernamesTaken:
-                send("server", "error", "Username taken!")                       
+                self.send("server", "error", "Username taken!")                       
 
             else:
                 if(not isValidUsername(username)):
-                    send("server", "error", "Login failed. Username not valid.")
+                    self.send("server", "error", "Login failed. Username not valid.")
                 else:     
                     usernamesTaken.append(username)
                     connectedClients.append(self)
                     self.username = username
-                    send("server", "info", "Login successful.")
+                    self.send("server", "info", "Login successful.")
                     #Send history object
-                    send("server", "history", log)
+                    #self.send("server", "history", log)
 
     def reply_logout(self, payload):
         if self in connectedClients:
-            usernamesTaken.remove(username)
+            usernamesTaken.remove(self.username)
             connectedClients.remove(self)
-            send("server", "info", "Logout successful.")
+            self.send("server", "info", "Logout successful.")
         else:
-            send("server", "error", "Invalid command.")
+            self.send("server", "error", "Invalid command.")
 
     def reply_names(self, payload):
         if self in connectedClients:
-            send("server", "info", usernamesTaken)
+            self.send("server", "info", usernamesTaken)
         else:
-            send("server", "error", "Invalid command.")
+            self.send("server", "error", "Invalid command.")
 
 
     def reply_help(self, payload):
         if self in connectedClients:
-            send("server", "info", "Useful commands: help, logout, names, msg.")
+            self.send("server", "info", "Useful commands: help, logout, names, msg.")
         else:
-            send("server", "info", "Useful commands: help, login.")
+            self.send("server", "info", "Useful commands: help, login.")
             
 
     def reply_msg(self, payload):
         if self in connectedClients:
             log.append(received_string)
-            broadcast(payload["content"], username)
+            broadcast(payload["content"])
         else:
-            send("server", "error", "Invalid command.")
+            self.send("server", "error", "Invalid command.")
 
 
-    def send(sender, response, content):
+    def send(self, sender, response, content):
         now = gmtime()
         timestamp = str(now[3]) + ':' + str(now[4]) + ':' + str(now[5])
         command = {"timestamp": timestamp, "sender": sender,
@@ -124,10 +129,10 @@ def isValidUsername(username):
     return True
 
 
-def broadcast(msg, username):
+def broadcast(msg):
     now = gmtime()
     timestamp = str(now[3]) + ':' + str(now[4]) + ':' + str(now[5])
-    message = {"timestamp": timestamp, "sender": username,
+    message = {"timestamp": timestamp, "sender": "server",
         "response": "message", "content": msg} 
     payload_message = json.dumps(message)
     for client in connectedClients:

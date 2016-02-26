@@ -31,7 +31,7 @@ class Client:
             rawInput = raw_input()
             if rawInput:
                 try: 
-                    request, content = rawInput.split()
+                    request, content = rawInput.split(" ", 1)
 
                 except ValueError:
                     request = rawInput
