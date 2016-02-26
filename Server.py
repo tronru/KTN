@@ -102,7 +102,7 @@ class ClientHandler(SocketServer.BaseRequestHandler):
     def reply_msg(self, payload):
         if self in connectedClients:
             log.append(received_string)
-            broadcast(payload["content"])
+            broadcast(payload["content"], username)
         else:
             send("server", "error", "Invalid command.")
 
@@ -124,10 +124,10 @@ def isValidUsername(username):
     return True
 
 
-def broadcast(msg):
+def broadcast(msg, username):
     now = gmtime()
     timestamp = str(now[3]) + ':' + str(now[4]) + ':' + str(now[5])
-    message = {"timestamp": timestamp, "sender": "server",
+    message = {"timestamp": timestamp, "sender": username,
         "response": "message", "content": msg} 
     payload_message = json.dumps(message)
     for client in connectedClients:
