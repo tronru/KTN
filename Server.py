@@ -40,7 +40,7 @@ class ClientHandler(SocketServer.BaseRequestHandler):
         self.port = self.client_address[1]
         self.connection = self.request
         self.username = ""
-
+        self.received_string = ""
 
 
         # Loop that listens for messages from the client
@@ -58,8 +58,6 @@ class ClientHandler(SocketServer.BaseRequestHandler):
 
             if payload['request'] in self.possible_requests:
                 return self.possible_requests[payload['request']](payload)
-            else:
-                print 'ERROR in replpy(): response <<', payload['request'], '>> from SERVER not supported.'
 
     def reply_login(self, payload):
         if self in connectedClients:
@@ -80,7 +78,8 @@ class ClientHandler(SocketServer.BaseRequestHandler):
                     self.username = username
                     self.send("server", "info", "Login successful.")
                     #Send history object
-                    #self.send("server", "history", log)
+                    sleep(0.1)
+                    self.send("server", "history", log)
 
     def reply_logout(self, payload):
         if self in connectedClients:
@@ -106,7 +105,7 @@ class ClientHandler(SocketServer.BaseRequestHandler):
 
     def reply_msg(self, payload):
         if self in connectedClients:
-            log.append(received_string)
+            log.append(self.received_string)
             broadcast(payload["content"])
         else:
             self.send("server", "error", "Invalid command.")

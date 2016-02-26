@@ -26,14 +26,14 @@ class Client:
         # Initiate the connection to the server
         self.connection.connect((self.host, self.server_port))
         self.receiver.start()
+        print 'Waiting for your input'
         while True:
-            print 'Waiting for your input'
             rawInput = raw_input()
             if rawInput:
                 try: 
                     request, content = rawInput.split(" ", 1)
 
-                except ValueError:
+                except ValueError, KeyboardInterrupt:
                     request = rawInput
                     content = ''
 
