@@ -20,14 +20,14 @@ class ClientHandler(SocketServer.BaseRequestHandler):
     logic for the server, you must write it outside this class
     """
 
-    def __init__(self):
-        self.possible_requests = {
-            'names': self.reply_names,
-            'help': self.reply_help,
-            'msg': self.reply_msg, 
-            'login': self.reply_login,
-            'logout': self.reply_logout
-            }
+    #def __init__(self):
+     #   self.possible_requests = {
+      #      'names': self.reply_names,
+       #     'help': self.reply_help,
+        #    'msg': self.reply_msg, 
+         #   'login': self.reply_login,
+          #  'logout': self.reply_logout
+           # }
 
     def handle(self):
         """
@@ -51,7 +51,7 @@ class ClientHandler(SocketServer.BaseRequestHandler):
     def reply(self, payload):
             payload = json.loads(payload)
 
-            if payload['request'] in self.possible_requests:
+            if payload['possible_requests'] in self.possible_requests:
                 return self.possible_requests[payload['request']](payload)
             else:
                 print 'ERROR in replpy(): response <<', payload['request'], '>> from SERVER not supported.'
