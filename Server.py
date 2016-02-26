@@ -7,9 +7,9 @@ Variables and functions that must be used by all the ClientHandler objects
 must be written here (e.g. a dictionary for connected clients)
 """
 
-connectedClients[]
-usernamesTaken[]
-log[]
+connectedClients = []
+usernamesTaken = []
+log = []
 
 
 class ClientHandler(SocketServer.BaseRequestHandler):
@@ -41,7 +41,7 @@ class ClientHandler(SocketServer.BaseRequestHandler):
         # Loop that listens for messages from the client
         while True:
             received_string = self.connection.recv(4096)
-            
+
             # TODO: Add handling of received payload from client
             if received_string:
                 self.reply(received_string)
@@ -54,7 +54,7 @@ class ClientHandler(SocketServer.BaseRequestHandler):
             if payload['request'] in self.possible_requests:
                 return self.possible_requests[payload['request']](payload)
             else:
-                print 'ERROR in parse(): response <<', payload['request'], '>> from SERVER not supported.'
+                print 'ERROR in replpy(): response <<', payload['request'], '>> from SERVER not supported.'
 
     def reply_login(self, payload):
         if self in connectedClients:
@@ -118,10 +118,10 @@ class ClientHandler(SocketServer.BaseRequestHandler):
 
 def isValidUsername(username):
     testString = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"
-        for letter in username:
-            if letter not in testString:
-                return False
-        return True
+    for letter in username:
+        if letter not in testString:
+            return False
+    return True
 
 
 def broadcast(msg):
