@@ -26,7 +26,8 @@ class Client:
         # Initiate the connection to the server
         self.connection.connect((self.host, self.server_port))
         self.receiver.start()
-        print 'Waiting for your input'
+        print '-- WELCOME TO CHAT --'
+        print 'Type <help> for useful commands.'
         while True:
             rawInput = raw_input()
             if rawInput:
