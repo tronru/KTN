@@ -23,4 +23,8 @@ class MessageReceiver(Thread):
 
     def run(self):
         # TODO: Make MessageReceiver receive and handle payloads
-        pass
+        parser = MessageParser()
+
+        while True:
+            package = self.connection.recv(4096)
+            parser.parse(package)
