@@ -40,10 +40,10 @@ class Client:
     def start():
 
         self.receiver.start()
-        
+
         print 'Waiting for your input'
+        rawInput = raw_input()
         try: 
-            rawInput = raw_input()
             request, content = rawInput.split()
 
         except: ValueError e
