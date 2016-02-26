@@ -3,6 +3,7 @@ import socket
 import json
 from MessageReceiver import MessageReceiver
 from MessageParser import MessageParser
+from time import *
 
 class Client:
     """
@@ -40,6 +41,9 @@ class Client:
 
                 payload = {'request': request.lower(), 'content': content}
                 self.send_payload(payload)
+                if request == 'logout':
+                    sleep(0.5)  # Wait for server info
+                    self.disconnect()
 
     def disconnect(self):
         # TODO: Handle disconnection
