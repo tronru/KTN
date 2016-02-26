@@ -40,7 +40,7 @@ class ClientHandler(SocketServer.BaseRequestHandler):
                 timestamp = str(now[3]) + ':' + str(now[4]) + ':' + str(now[5])
                 dataRequest = data["request"].lower()
                 
-                #Different action when connected
+                #Different actions when connected
                 if self in connectedClients:
 
                     if dataRequest=="login":
@@ -58,7 +58,7 @@ class ClientHandler(SocketServer.BaseRequestHandler):
 
                     elif dataRequest == "msg":
                         log.append(received_string)
-
+                        broadcast(dataRequest["content"])
 
 
                     elif dataRequest == "names":
@@ -73,7 +73,7 @@ class ClientHandler(SocketServer.BaseRequestHandler):
                         usernamesTaken.remove(username)
                         connectedClients.remove(self)
                         logoutSucc = {"timestamp": timestamp, "sender": "server",
-                            "response": "Info", "content": "Logout successful"}
+                            "response": "info", "content": "Logout successful"}
                         payload_logoutSucc = json.dumps(logoutSucc)
                         self.connection.send(payload_logoutSucc)
 
@@ -83,14 +83,14 @@ class ClientHandler(SocketServer.BaseRequestHandler):
 
                         if username in usernamesTaken:                       
                             userNameTaken = {"timestamp": timestamp, "sender": "server",
-                             "response": "Error", "content": "Username taken!"}
+                             "response": "error", "content": "Username taken!"}
                             payload_userNameTaken = json.dumps(userNameTaken)
                             self.connection.send(payload_userNameTaken)
 
                         else:
                             if(not isValidUsername(username)):
                                 loginFail = {"timestamp": timestamp, "sender": "server",
-                                    "response": "Error", "content": "Login failed. Username not valid"}
+                                    "response": "error", "content": "Login failed. Username not valid"}
                                 payload_loginFail = json.dumps(loginFail)
                                 self.connection.send(payload_loginFail)
                             else:     
@@ -98,7 +98,7 @@ class ClientHandler(SocketServer.BaseRequestHandler):
                                 connectedClients.append(self)
                                 self.username = username
                                 loginSucc = {"timestamp": timestamp, "sender": "server",
-                                    "response": "Info", "content": "Login successful"}
+                                    "response": "info", "content": "Login successful"}
                                 payload_loginSucc = json.dumps(loginSucc)
                                 self.connection.send(payload_loginSucc)
                                 #History object
@@ -108,7 +108,7 @@ class ClientHandler(SocketServer.BaseRequestHandler):
 
                     elif dataRequest == "help":
                         help = {"timestamp": timestamp, "sender": "server",
-                            "response": "Info", "content": "Useful commands: help, login"}
+                            "response": "info", "content": "Useful commands: help, login"}
                         payload_help = json.dumps(help)
                         self.connection.send(payload_help)
 
@@ -140,8 +140,14 @@ def isValidUsername(username):
 
 
 def broadcast(msg):
+    now = gmtime()
+    timestamp = str(now[3]) + ':' + str(now[4]) + ':' + str(now[5])
     message = {"timestamp": timestamp, "sender": "server",
-        "response": "error", "content": "Invalid command"}    
+        "response": "message", "content": msg} 
+    payload_message = json.dumps(message)
+    for client in connectedClients:
+        client.connection.send(payload_message)
+
 
 
 

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import json
 
 class MessageParser():
@@ -16,7 +17,7 @@ class MessageParser():
         if payload['response'] in self.possible_responses:
             return self.possible_responses[payload['response']](payload)
         else:
-            print 'ERROR in parse(): response "', payload['response'], '" not supported.'
+            print 'ERROR in parse(): response <<', payload['response'], '>> from SERVER not supported.'
 
     def parse_error(self, payload):
         print 'ERROR:', payload['content']
@@ -25,11 +26,12 @@ class MessageParser():
         print payload['timestamp'], 'SERVER:', payload['content']
 
     def parse_message(self, payload):
-        print payload['timestamp'], payload['sender'], 'sendt:'
+        print payload['timestamp'], payload['sender'], 'sent:'
         print '   ', payload['content']
 
     def parse_history(self, payload):
-        print payload['timestamp'], 'CHAT HISTORY:'
-        print payload['content']
+        print payload['timestamp'], '-- CHAT HISTORY --'
+        for message in (payload['content']):
+            self.parse(message)
     
     # Include more methods for handling the different responses... 

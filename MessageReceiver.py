@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from threading import Thread
+import MessageParser
 
 class MessageReceiver(Thread):
     """
@@ -13,7 +14,7 @@ class MessageReceiver(Thread):
         This method is executed when creating a new MessageReceiver object
         """
 
-        # Flag to run thread as a deamon
+        # Flag to run thread as a daemon
         self.daemon = True
         self.connection = connection
         self.client = client
