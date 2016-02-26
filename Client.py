@@ -17,16 +17,27 @@ class Client:
         self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         
         # TODO: Finish init process with necessary code
-        self.run()
         self.host = host
         self.server_port = server_port
         self.receiver = MessageReceiver(self, self.connection)
+        self.run()
 
     def run(self):
         # Initiate the connection to the server
         self.connection.connect((self.host, self.server_port))
         self.receiver.start()
-        self.start()
+        while True:
+            print 'Waiting for your input'
+            rawInput = raw_input()
+            try: 
+                request, content = rawInput.split()
+
+            except ValueError:
+                request = rawInput
+                content = ''
+
+            payload = {'request': request.lower(), 'content': content}
+            self.send_payload(payload)
 
     def disconnect(self):
         # TODO: Handle disconnection
@@ -36,22 +47,6 @@ class Client:
     def receive_message(self, message):
         # TODO: Handle incoming message
         pass
-
-    def start():
-
-        self.receiver.start()
-
-        print 'Waiting for your input'
-        rawInput = raw_input()
-        try: 
-            request, content = rawInput.split()
-
-        except: ValueError e
-            request = rawInput
-            content = ''
-
-        payload = {'request': request.lower(), 'content': content}
-        self.send_payload(payload)
 
 
     def send_payload(self, data):
