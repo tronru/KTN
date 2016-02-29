@@ -58,6 +58,8 @@ class ClientHandler(SocketServer.BaseRequestHandler):
 
             if payload['request'] in self.possible_requests:
                 return self.possible_requests[payload['request']](payload)
+            else:
+                self.send("server", "error", "Invalid command.")
 
     def reply_login(self, payload):
         if self in connectedClients:
@@ -86,8 +88,6 @@ class ClientHandler(SocketServer.BaseRequestHandler):
             usernamesTaken.remove(self.username)
             connectedClients.remove(self)
             self.send("server", "info", "Logout successful.")
-            #sleep(0.5)
-            #self.exit()
         else:
             self.send("server", "error", "Invalid command.")
 
@@ -100,9 +100,9 @@ class ClientHandler(SocketServer.BaseRequestHandler):
 
     def reply_help(self, payload):
         if self in connectedClients:
-            self.send("server", "info", "Useful commands: help, logout, names, msg.")
+            self.send("server", "info", "Useful commands: <help>, <logout>, <names>, <msg> text.")
         else:
-            self.send("server", "info", "Useful commands: help, login.")
+            self.send("server", "info", "Useful commands: <help>, <login> user.")
             
 
     def reply_msg(self, payload):
@@ -119,7 +119,7 @@ class ClientHandler(SocketServer.BaseRequestHandler):
 
     def send(self, sender, response, content):
         now = gmtime()
-        timestamp = str(now[3]) + ':' + str(now[4]) + ':' + str(now[5])
+        timestamp = str(now[3] + 1) + ':' + str(now[4]) + ':' + str(now[5])
         command = {"timestamp": timestamp, "sender": sender,
             "response": response, "content": content}
         self.connection.send(json.dumps(command))
@@ -131,7 +131,7 @@ def isValidUsername(username):
     for letter in username:
         if letter not in testString:
             return False
-    return True
+    return (username != '')
 
 
 def broadcast(msg, username):
@@ -160,7 +160,7 @@ if __name__ == "__main__":
 
     No alterations are necessary
     """
-    HOST, PORT = 'localhost', 9998
+    HOST, PORT = '192.168.0.105', 9998
     print 'Server running...'
 
     # Set up and initiate the TCP server
